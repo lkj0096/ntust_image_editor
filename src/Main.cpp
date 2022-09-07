@@ -43,7 +43,9 @@ std::vector<char*>  vsStudentNames;
 void MakeNames()
 {
     // ************ ADD YOUR NAME HERE ****************************************
-    //vsStudentNames.push_back("Your name here!");
+	vsStudentNames.push_back("B11015021 linshijie");
+    vsStudentNames.push_back("B11015037 linkaijie");
+	vsStudentNames.push_back("B11015043 changcharay");
 }// MakeNames
 
 
@@ -99,30 +101,28 @@ int main(int argc, char *argv[])
     TargaImage* pImage = NULL;
     bool bHeadless = false;
 
-    for (int i = script_arg; i < argc; ++i)
-    {
+    for (int i = script_arg; i < argc; ++i) {
+        //load D:\Team\NTUST\graphic\ImageEditing\Images\wiz.tga
         if (!strcmp(argv[i], c_sNames))                                 // display names
             DisplayNames();
         else if (!bHeadless && !strcmp(argv[i], c_sHeadless))           // go headless
             bHeadless = true;
         else if (bHeadless && strcmp(argv[i], c_sHeadless))             // run script file
             CScriptHandler::HandleScriptFile(argv[i], pImage);
-        else
-        {
+        else {
             cerr << "Usage:" << endl << "Project1 [-names] [-headless scriptFilenames . . .]" << endl;
             return 0;
         }// else
     }// for
 
     // print name reminder
-//    if (vsStudentNames.empty())
-//        cout << "This project has no author names.  Please add your" << endl
-//             << "name in MakeNames in Main.cpp.  If you do not" << endl
-//             << "comply, you will not be in compliance.  Have a nice day." << endl;
+   if (vsStudentNames.empty())
+       cout << "This project has no author names.  Please add your" << endl
+            << "name in MakeNames in Main.cpp.  If you do not" << endl
+            << "comply, you will not be in compliance.  Have a nice day." << endl;
 
     // run the gui if we're not headless
-    if (!bHeadless)
-    {
+    if (!bHeadless) {
         // using the gui so create our window and the image widget
         Fl_Window   window(350, 100, "CS559 Project 1");
         Fl::visual(FL_RGB);
@@ -138,5 +138,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }// main
-
 

@@ -211,8 +211,12 @@ TargaImage* TargaImage::Load_Image(char *filename)
 ///////////////////////////////////////////////////////////////////////////////
 bool TargaImage::To_Grayscale()
 {
-	ClearToBlack();
-	return false;
+    for (int i = 0; i < width * height * 4; i += 4) {
+        data[i] = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+        data[i + 2] = data[i + 1] = data[i];
+    }
+	//ClearToBlack();
+	return true;
 }// To_Grayscale
 
 

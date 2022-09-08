@@ -592,7 +592,20 @@ bool TargaImage::Rotate(float angleDegrees)
 {
     ClearToBlack();
     return false;
-}// Rotate
+}
+bool TargaImage::Compare(TargaImage* pImage) {
+    if (width != pImage->width) {
+        return false;
+    }
+    if (height != pImage->height) {
+        return false;
+    }
+    for (int i = 0; i < width * height * 4; i++) {
+        if (data[i] != pImage->data[i]) return false;
+    }
+    return true;
+}
+// Rotate
 
 
 //////////////////////////////////////////////////////////////////////////////

@@ -68,6 +68,8 @@ class TargaImage
         bool Resize(float scale);
         bool Rotate(float angleDegrees);
 
+        bool Compare(TargaImage* pImage);
+
     private:
 	// helper function for format conversion
         void RGBA_To_RGB(unsigned char *rgba, unsigned char *rgb);

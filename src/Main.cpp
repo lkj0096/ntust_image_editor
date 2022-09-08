@@ -22,7 +22,9 @@
 #include "TargaImage.h"
 #include "ImageWidget.h"
 #include "ScriptHandler.h"
+#include "ProjTest.h"
 
+#define test
 
 using namespace std;
 
@@ -100,6 +102,12 @@ int main(int argc, char *argv[])
     // check command line arguments
     TargaImage* pImage = NULL;
     bool bHeadless = false;
+
+#ifdef test
+    ProjTest::Test();
+    system("pause");
+    return 0;
+#endif
 
     for (int i = script_arg; i < argc; ++i) {
         //load D:\Team\NTUST\graphic\ImageEditing\Images\wiz.tga

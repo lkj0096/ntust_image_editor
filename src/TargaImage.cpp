@@ -20,7 +20,8 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
-
+#include <map>
+#include <set>
 using namespace std;
 
 // constants
@@ -209,13 +210,12 @@ TargaImage* TargaImage::Load_Image(char *filename)
 //  success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::To_Grayscale()
-{
+bool TargaImage::To_Grayscale() {
     for (int i = 0; i < width * height * 4; i += 4) {
         data[i] = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
         data[i + 2] = data[i + 1] = data[i];
     }
-	//ClearToBlack();
+
 	return true;
 }// To_Grayscale
 
@@ -226,9 +226,12 @@ bool TargaImage::To_Grayscale()
 //  success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Quant_Uniform()
-{
-    ClearToBlack();
+bool TargaImage::Quant_Uniform() {
+    for (int i = 0; i < width * height * 4; i += 4) {
+        data[i + 0] = data[i + 0] >> 5 << 5; // R 3bit
+        data[i + 1] = data[i + 1] >> 5 << 5; // G 3bit
+        data[i + 2] = data[i + 2] >> 6 << 6; // B 2bit
+    }
     return false;
 }// Quant_Uniform
 
@@ -239,10 +242,63 @@ bool TargaImage::Quant_Uniform()
 //  Return success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Quant_Populosity()
-{
-    ClearToBlack();
-    return false;
+bool TargaImage::Quant_Populosity() {
+    std::map<uint32_t, int> colors;
+    for (int i = 0; i < this->width * this->height * 4; i += 4) {
+        uint8_t R_val = this->data[i + 0] >> 3;
+        uint8_t G_val = this->data[i + 1] >> 3;
+        uint8_t B_val = this->data[i + 2] >> 3;
+        uint32_t key = (R_val << 10) + (G_val << 5) + B_val;
+        if (colors.find(key) == colors.end()){
+            colors[key] = 1;
+        }else{
+            colors[key]++;
+        }
+    }
+
+
+    std::vector<std::pair<uint32_t , int>> Sorted(colors.begin(), colors.end());
+    std::sort(Sorted.begin(), Sorted.end(),
+              [](const std::pair<uint32_t, int>& a, const std::pair<uint32_t, int>& b)
+              { return a.second > b.second; });
+
+    for (int i = 0; i < this->width * this->height * 4; i += 4) {
+        int ind = 0;
+        uint8_t R_val = this->data[i + 0];
+        uint8_t G_val = this->data[i + 1];
+        uint8_t B_val = this->data[i + 2];
+
+        uint32_t min_dis = (1<<31);
+        pair<uint32_t,int> min_it;
+
+        for (const auto& j : Sorted){
+            uint8_t jR_val = ((j.first >> 10) & 0b11111) << 3;
+            uint8_t jG_val = ((j.first >> 05) & 0b11111) << 3;
+            uint8_t jB_val = ((j.first >> 00) & 0b11111) << 3;
+
+            uint32_t dis =
+                    (jR_val - R_val) * (jR_val - R_val)+
+                    (jG_val - G_val) * (jG_val - G_val)+
+                    (jB_val - B_val) * (jB_val - B_val);
+
+            if(dis < min_dis){
+                min_dis = dis;
+                min_it = j;
+            }
+
+            if(ind == 255){
+                break;
+            }
+            ind++;
+        }
+
+        data[i + 0] = ((min_it.first >> 10) & 0b11111) << 3;
+        data[i + 1] = ((min_it.first >> 05) & 0b11111) << 3;
+        data[i + 2] = ((min_it.first >> 00) & 0b11111) << 3;
+
+    }
+
+    return true;
 }// Quant_Populosity
 
 
@@ -251,8 +307,8 @@ bool TargaImage::Quant_Populosity()
 //      Dither the image using a threshold of 1/2.  Return success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Dither_Threshold()
-{
+bool TargaImage::Dither_Threshold() {
+
     ClearToBlack();
     return false;
 }// Dither_Threshold

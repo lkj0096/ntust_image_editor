@@ -24,7 +24,7 @@
 #include "ScriptHandler.h"
 #include "ProjTest.h"
 
-#define test
+//#define test
 
 using namespace std;
 
@@ -45,9 +45,7 @@ std::vector<char*>  vsStudentNames;
 void MakeNames()
 {
     // ************ ADD YOUR NAME HERE ****************************************
-	vsStudentNames.push_back("B11015021 linshijie");
     vsStudentNames.push_back("B11015037 linkaijie");
-	vsStudentNames.push_back("B11015043 changcharay");
 }// MakeNames
 
 

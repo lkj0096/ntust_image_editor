@@ -322,10 +322,23 @@ bool TargaImage::Dither_Threshold() {
 //      Dither image using random dithering.  Return success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Dither_Random()
-{
-    ClearToBlack();
-    return false;
+bool TargaImage::Dither_Random(){
+    srand(0);
+    for (int i = 0; i < width * height * 4; i += 4) {
+        double R = data[i + 0] / 255.0;
+        double G = data[i + 1] / 255.0;
+        double B = data[i + 2] / 255.0;
+        double rd = ((rand() % 101) - 50) / 1000.0;
+        double grayval = R * 0.299 +
+                         G * 0.587 +
+                         B * 0.114;
+        grayval += rd;
+        grayval *= 255;
+        data[i] = static_cast<uint8_t>(grayval);
+        data[i] = (data[i] < 128) ? 0 : 255;
+        data[i + 2] = data[i + 1] = data[i];
+    }
+    return true;
 }// Dither_Random
 
 
@@ -348,10 +361,21 @@ bool TargaImage::Dither_FS()
 //  success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Dither_Bright()
-{
-    ClearToBlack();
-    return false;
+bool TargaImage::Dither_Bright() {
+    double sum_of_gray = 0.0;
+    for (int i = 0; i < width * height * 4; i += 4) {
+        double grayval = data[i] / 255.0 + data[i+1] / 255.0 + data[i+2] / 255.0 ;
+        sum_of_gray += grayval;
+    }
+
+    sum_of_gray = (sum_of_gray / (width * height)) * 255;
+
+    for (int i = 0; i < width * height * 4; i += 4) {
+        data[i] = (data[i] < sum_of_gray) ? 0 : 255;
+        data[i + 2] = data[i + 1] = data[i];
+    }
+
+    return true;
 }// Dither_Bright
 
 
@@ -360,8 +384,7 @@ bool TargaImage::Dither_Bright()
 //      Perform clustered differing of the image.  Return success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Dither_Cluster()
-{
+bool TargaImage::Dither_Cluster() {
     ClearToBlack();
     return false;
 }// Dither_Cluster

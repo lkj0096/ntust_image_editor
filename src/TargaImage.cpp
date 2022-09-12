@@ -362,16 +362,27 @@ bool TargaImage::Dither_FS()
 //
 ///////////////////////////////////////////////////////////////////////////////
 bool TargaImage::Dither_Bright() {
-    double sum_of_gray = 0.0;
+    double sum_of_brightness = 0.0;
+    vector<int> bright_cnt(256, 0);
     for (int i = 0; i < width * height * 4; i += 4) {
-        double grayval = data[i] / 255.0 + data[i+1] / 255.0 + data[i+2] / 255.0 ;
-        sum_of_gray += grayval;
+        double r = data[i], g = data[i+1], b = data[i+2];
+        double grayval = r * 0.299 + g * 0.587 + b * 0.114;
+        data[i] = static_cast<uint8_t>(grayval);
+        sum_of_brightness += grayval;
+        bright_cnt[static_cast<int>(grayval)]++;
     }
 
-    sum_of_gray = (sum_of_gray / (width * height)) * 255;
+    int br_after_thres = 0;
+    int thres_val = 255;
+    for( ; thres_val > -1 ; thres_val--){
+        br_after_thres += (bright_cnt[thres_val] * 255);
+        if(br_after_thres >= sum_of_brightness){
+            break;
+        }
+    }
 
     for (int i = 0; i < width * height * 4; i += 4) {
-        data[i] = (data[i] < sum_of_gray) ? 0 : 255;
+        data[i] = (data[i] < thres_val) ? 0 : 255;
         data[i + 2] = data[i + 1] = data[i];
     }
 

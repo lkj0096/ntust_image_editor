@@ -393,8 +393,19 @@ bool TargaImage::Dither_Bright() {
 //
 ///////////////////////////////////////////////////////////////////////////////
 bool TargaImage::Dither_Cluster() {
-    ClearToBlack();
-    return false;
+    this->To_Grayscale();
+    int mask[4][4] = {{180, 90, 150, 60},
+                      {15, 240, 210, 105},
+                      {120, 195, 225, 30},
+                      {45, 135, 75, 165}};
+    for (int i = 0; i < height; i++) {
+        for(int j = 0; j < width; j++){
+            size_t index = i * width * 4 + j * 4;
+            data[index] = data[index] >= mask[i % 4][ j % 4 ] ? 255 : 0;
+            data[index + 2] = data[index + 1] = data[index];
+        }
+    }
+    return true;
 }// Dither_Cluster
 
 

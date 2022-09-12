@@ -323,21 +323,19 @@ bool TargaImage::Dither_Threshold() {
 //
 ///////////////////////////////////////////////////////////////////////////////
 bool TargaImage::Dither_Random(){
-    srand(0);
+    srand(time(NULL));
     for (int i = 0; i < width * height * 4; i += 4) {
-        double R = data[i + 0] / 255.0;
-        double G = data[i + 1] / 255.0;
-        double B = data[i + 2] / 255.0;
-        double rd = ((rand() % 101) - 50) / 1000.0;
-        double grayval = R * 0.299 +
-                         G * 0.587 +
-                         B * 0.114;
+
+        double grayval = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+        double rd = ((rand() % 103) - 51);
+
         grayval += rd;
-        grayval *= 255;
+        grayval = grayval < 255 ? grayval > 0 ? grayval : 0 : 255;
+
         data[i] = static_cast<uint8_t>(grayval);
-        data[i] = (data[i] < 128) ? 0 : 255;
         data[i + 2] = data[i + 1] = data[i];
     }
+    this->Dither_Bright();
     return true;
 }// Dither_Random
 
@@ -365,8 +363,7 @@ bool TargaImage::Dither_Bright() {
     double sum_of_brightness = 0.0;
     vector<int> bright_cnt(256, 0);
     for (int i = 0; i < width * height * 4; i += 4) {
-        double r = data[i], g = data[i+1], b = data[i+2];
-        double grayval = r * 0.299 + g * 0.587 + b * 0.114;
+        double grayval = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
         data[i] = static_cast<uint8_t>(grayval);
         sum_of_brightness += grayval;
         bright_cnt[static_cast<int>(grayval)]++;

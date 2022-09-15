@@ -129,7 +129,7 @@ unsigned char* TargaImage::To_RGB(void)
     // Divide out the alpha
     for (i = 0 ; i < height ; i++)
     {
-	    int in_offset = i * width * 4;
+	    int in_offset = ((i * width) << 2);
 	    int out_offset = i * width * 3;
 
 	    for (j = 0 ; j < width ; j++)
@@ -378,7 +378,7 @@ bool TargaImage::Dither_Bright() {
         }
     }
 
-    for (int i = 0; i < width * height * 4; i += 4) {
+    for (int i = 0; i < (width * height) << 2; i += 4) {
         data[i] = (data[i] < thres_val) ? 0 : 255;
         data[i + 2] = data[i + 1] = data[i];
     }
@@ -400,8 +400,8 @@ bool TargaImage::Dither_Cluster() {
                       {45, 135, 75, 165}};
     for (int i = 0; i < height; i++) {
         for(int j = 0; j < width; j++){
-            size_t index = i * width * 4 + j * 4;
-            data[index] = data[index] >= mask[i % 4][ j % 4 ] ? 255 : 0;
+            size_t index = ((i * width) << 2) + (j << 2);
+            data[index] = data[index] >= mask[i & 0b11][ j & 0b11 ] ? 255 : 0;
             data[index + 2] = data[index + 1] = data[index];
         }
     }
@@ -560,13 +560,13 @@ bool TargaImage::Difference(TargaImage* pImage)
 ///////////////////////////////////////////////////////////////////////////////
 bool TargaImage::Filter_Box() {
 
-    uint8_t * new_data = new uint8_t[this->height * this->width * 4];
+    uint8_t * new_data = new uint8_t[(this->height * this->width) << 2];
 
     for (int i = 0; i < height; i++) {
         for(int j = 0; j < width; j++){
             uint32_t Rtotal = 0, Gtotal = 0, Btotal = 0;
             int32_t count = 0;
-            size_t index = i * width * 4 + j * 4;
+            size_t index = ((i * width) << 2) + j * 4;
 
             new_data[index + 3] = data[index + 3];
 
@@ -607,9 +607,9 @@ bool TargaImage::Filter_Box() {
 ///////////////////////////////////////////////////////////////////////////////
 bool TargaImage::Filter_Bartlett() {
 
-    uint8_t * new_data = new uint8_t[this->height * this->width * 4];
+    uint8_t * new_data = new uint8_t[(this->height * this->width) << 2];
 
-    const static double filter[5][5] = {
+    const static int filter[5][5] = {
         {1, 3, 5, 3, 1},
         {3, 9, 15, 9, 3},
         {5, 15, 25, 15, 5},
@@ -621,7 +621,7 @@ bool TargaImage::Filter_Bartlett() {
         for(int j = 0; j < width; j++){
             uint32_t Rtotal = 0, Gtotal = 0, Btotal = 0;
             int32_t count = 0;
-            size_t index = i * width * 4 + j * 4;
+            size_t index = ((i * width) << 2) + j * 4;
 
             new_data[index + 3] = data[index + 3];
 
@@ -661,9 +661,9 @@ bool TargaImage::Filter_Bartlett() {
 //
 ///////////////////////////////////////////////////////////////////////////////
 bool TargaImage::Filter_Gaussian() {
-    uint8_t * new_data = new uint8_t[this->height * this->width * 4];
+    uint8_t * new_data = new uint8_t[(this->height * this->width) << 2];
 
-    const static double filter[5][5] = {
+    const static int filter[5][5] = {
         {1, 4, 7, 4, 1},
         {4, 16, 26, 16, 4},
         {7, 26, 41, 26, 7},
@@ -675,7 +675,7 @@ bool TargaImage::Filter_Gaussian() {
         for(int j = 0; j < width; j++){
             uint32_t Rtotal = 0, Gtotal = 0, Btotal = 0;
             int32_t count = 0;
-            size_t index = i * width * 4 + j * 4;
+            size_t index = ((i * width) << 2) + (j << 2);
 
             new_data[index + 3] = data[index + 3];
 
@@ -728,7 +728,7 @@ bool TargaImage::Filter_Gaussian_N( unsigned int N ) {
 ///////////////////////////////////////////////////////////////////////////////
 bool TargaImage::Filter_Edge() {
     ClearToBlack();
-    return false;
+    return true;
 }// Filter_Edge
 
 
@@ -765,8 +765,53 @@ bool TargaImage::NPR_Paint() {
 //
 ///////////////////////////////////////////////////////////////////////////////
 bool TargaImage::Half_Size() {
-    ClearToBlack();
-    return false;
+
+    uint8_t * new_data = new uint8_t[(this->height>>1) * (this->width>>1) << 2];
+
+    const static int filter[3][3] = {
+        {1, 2, 1},
+        {2, 4, 2},
+        {1, 2, 1}
+    };
+
+    for (int i = 0; i < (height >> 1); i++) {
+        for(int j = 0; j < (width >> 1); j++){
+            uint32_t Rtotal = 0, Gtotal = 0, Btotal = 0;
+            int32_t count = 0;
+            size_t index = (i * (width >> 1))  * 4 + j * 4;
+
+            for(int m = 0; m < 3; m++){
+                for(int n = 0; n < 3; n++){
+                    static size_t shift_x, shift_y;
+                    shift_x = ((i << 1) + m - 1);
+                    shift_y = ((j << 1) + n - 1);
+
+                    if(shift_x < 0 || shift_x >= height){ continue; }
+                    if(shift_y < 0 || shift_y >= width){ continue; }
+
+                    static size_t in_index;
+                    in_index = shift_x * width * 4 + shift_y * 4;
+                    Rtotal += data[in_index+0] * filter[m][n];
+                    Gtotal += data[in_index+1] * filter[m][n];
+                    Btotal += data[in_index+2] * filter[m][n];
+                    new_data[index + 3] = data[in_index + 3];
+                    count  += filter[m][n];
+                }
+            }
+
+            new_data[index + 0] = static_cast<uint8_t>(Rtotal / count);
+            new_data[index + 1] = static_cast<uint8_t>(Gtotal / count);
+            new_data[index + 2] = static_cast<uint8_t>(Btotal / count);
+        }
+    }
+
+    delete[] data;
+    data = new_data;
+
+    this->height >>= 1;
+    this->width >>= 1;
+
+    return true;
 }// Half_Size
 
 
@@ -861,7 +906,7 @@ TargaImage* TargaImage::Reverse_Rows(void)
     for (i = 0 ; i < height ; i++)
     {
 	    int in_offset = (height - i - 1) * width * 4;
-	    int out_offset = i * width * 4;
+	    int out_offset = ((i * width) << 2);
 
 	    for (j = 0 ; j < width ; j++)
         {

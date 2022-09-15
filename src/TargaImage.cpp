@@ -618,36 +618,36 @@ bool TargaImage::Filter_Bartlett() {
     };
 
     for (int i = 0; i < height; i++) {
-            for(int j = 0; j < width; j++){
-                    uint32_t Rtotal = 0, Gtotal = 0, Btotal = 0;
-                    int32_t count = 0;
-                    size_t index = i * width * 4 + j * 4;
+        for(int j = 0; j < width; j++){
+            uint32_t Rtotal = 0, Gtotal = 0, Btotal = 0;
+            int32_t count = 0;
+            size_t index = i * width * 4 + j * 4;
 
-                    new_data[index + 3] = data[index + 3];
+            new_data[index + 3] = data[index + 3];
 
-                    for(int m = 0; m < 5; m++){
-                            for(int n = 0; n < 5; n++){
-                                    static size_t shift_x, shift_y;
-                                    shift_x = (i + m - 2);
-                                    shift_y = (j + n - 2);
+            for(int m = 0; m < 5; m++){
+                for(int n = 0; n < 5; n++){
+                    static size_t shift_x, shift_y;
+                    shift_x = (i + m - 2);
+                    shift_y = (j + n - 2);
 
-                                    if(shift_x < 0 || shift_x >= height){ continue; }
-                                    if(shift_y < 0 || shift_y >= width){ continue; }
+                    if(shift_x < 0 || shift_x >= height){ continue; }
+                    if(shift_y < 0 || shift_y >= width){ continue; }
 
-                                    static size_t in_index;
-                                    in_index = shift_x * width * 4 + shift_y * 4;
-                                    Rtotal += data[in_index+0] * filter[m][n];
-                                    Gtotal += data[in_index+1] * filter[m][n];
-                                    Btotal += data[in_index+2] * filter[m][n];
-                                    count  += filter[m][n];
-                                }
-                        }
-
-                    new_data[index + 0] = static_cast<uint8_t>(Rtotal / count);
-                    new_data[index + 1] = static_cast<uint8_t>(Gtotal / count);
-                    new_data[index + 2] = static_cast<uint8_t>(Btotal / count);
+                    static size_t in_index;
+                    in_index = shift_x * width * 4 + shift_y * 4;
+                    Rtotal += data[in_index+0] * filter[m][n];
+                    Gtotal += data[in_index+1] * filter[m][n];
+                    Btotal += data[in_index+2] * filter[m][n];
+                    count  += filter[m][n];
                 }
+            }
+
+            new_data[index + 0] = static_cast<uint8_t>(Rtotal / count);
+            new_data[index + 1] = static_cast<uint8_t>(Gtotal / count);
+            new_data[index + 2] = static_cast<uint8_t>(Btotal / count);
         }
+    }
     delete[] data;
     data = new_data;
     return true;
@@ -672,36 +672,36 @@ bool TargaImage::Filter_Gaussian() {
     };
 
     for (int i = 0; i < height; i++) {
-            for(int j = 0; j < width; j++){
-                    uint32_t Rtotal = 0, Gtotal = 0, Btotal = 0;
-                    int32_t count = 0;
-                    size_t index = i * width * 4 + j * 4;
+        for(int j = 0; j < width; j++){
+            uint32_t Rtotal = 0, Gtotal = 0, Btotal = 0;
+            int32_t count = 0;
+            size_t index = i * width * 4 + j * 4;
 
-                    new_data[index + 3] = data[index + 3];
+            new_data[index + 3] = data[index + 3];
 
-                    for(int m = 0; m < 5; m++){
-                            for(int n = 0; n < 5; n++){
-                                    static size_t shift_x, shift_y;
-                                    shift_x = (i + m - 2);
-                                    shift_y = (j + n - 2);
+            for(int m = 0; m < 5; m++){
+                for(int n = 0; n < 5; n++){
+                    static size_t shift_x, shift_y;
+                    shift_x = (i + m - 2);
+                    shift_y = (j + n - 2);
 
-                                    if(shift_x < 0 || shift_x >= height){ continue; }
-                                    if(shift_y < 0 || shift_y >= width){ continue; }
+                    if(shift_x < 0 || shift_x >= height){ continue; }
+                    if(shift_y < 0 || shift_y >= width){ continue; }
 
-                                    static size_t in_index;
-                                    in_index = shift_x * width * 4 + shift_y * 4;
-                                    Rtotal += data[in_index+0] * filter[m][n];
-                                    Gtotal += data[in_index+1] * filter[m][n];
-                                    Btotal += data[in_index+2] * filter[m][n];
-                                    count  += filter[m][n];
-                                }
-                        }
-
-                    new_data[index + 0] = static_cast<uint8_t>(Rtotal / count);
-                    new_data[index + 1] = static_cast<uint8_t>(Gtotal / count);
-                    new_data[index + 2] = static_cast<uint8_t>(Btotal / count);
+                    static size_t in_index;
+                    in_index = shift_x * width * 4 + shift_y * 4;
+                    Rtotal += data[in_index+0] * filter[m][n];
+                    Gtotal += data[in_index+1] * filter[m][n];
+                    Btotal += data[in_index+2] * filter[m][n];
+                    count  += filter[m][n];
                 }
+            }
+
+            new_data[index + 0] = static_cast<uint8_t>(Rtotal / count);
+            new_data[index + 1] = static_cast<uint8_t>(Gtotal / count);
+            new_data[index + 2] = static_cast<uint8_t>(Btotal / count);
         }
+    }
     delete[] data;
     data = new_data;
     return true;

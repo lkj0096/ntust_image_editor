@@ -558,10 +558,44 @@ bool TargaImage::Difference(TargaImage* pImage)
 //      Perform 5x5 box filter on this image.  Return success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Filter_Box()
-{
-    ClearToBlack();
-    return false;
+bool TargaImage::Filter_Box() {
+
+    uint8_t * new_data = new uint8_t[this->height * this->width * 4];
+
+    for (int i = 0; i < height; i++) {
+        for(int j = 0; j < width; j++){
+            uint32_t Rtotal = 0, Gtotal = 0, Btotal = 0;
+            int32_t count = 0;
+            size_t index = i * width * 4 + j * 4;
+
+            new_data[index + 3] = data[index + 3];
+
+            for(int m = 0; m < 5; m++){
+                for(int n = 0; n < 5; n++){
+                    static size_t shift_x, shift_y;
+                    shift_x = (i + m - 2);
+                    shift_y = (j + n - 2);
+
+                    if(shift_x < 0 || shift_x >= height){ continue; }
+                    if(shift_y < 0 || shift_y >= width){ continue; }
+
+                    static size_t in_index;
+                    in_index = shift_x * width * 4 + shift_y * 4;
+                    Rtotal += data[in_index+0];
+                    Gtotal += data[in_index+1];
+                    Btotal += data[in_index+2];
+                    count ++;
+                }
+            }
+
+            new_data[index + 0] = static_cast<uint8_t>(Rtotal / count);
+            new_data[index + 1] = static_cast<uint8_t>(Gtotal / count);
+            new_data[index + 2] = static_cast<uint8_t>(Btotal / count);
+        }
+    }
+    delete[] data;
+    data = new_data;
+    return true;
 }// Filter_Box
 
 
@@ -571,8 +605,7 @@ bool TargaImage::Filter_Box()
 //  operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Filter_Bartlett()
-{
+bool TargaImage::Filter_Bartlett() {
     ClearToBlack();
     return false;
 }// Filter_Bartlett
@@ -584,8 +617,7 @@ bool TargaImage::Filter_Bartlett()
 //  operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Filter_Gaussian()
-{
+bool TargaImage::Filter_Gaussian() {
     ClearToBlack();
     return false;
 }// Filter_Gaussian
@@ -597,8 +629,7 @@ bool TargaImage::Filter_Gaussian()
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-bool TargaImage::Filter_Gaussian_N( unsigned int N )
-{
+bool TargaImage::Filter_Gaussian_N( unsigned int N ) {
     ClearToBlack();
    return false;
 }// Filter_Gaussian_N
@@ -610,8 +641,7 @@ bool TargaImage::Filter_Gaussian_N( unsigned int N )
 //  success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Filter_Edge()
-{
+bool TargaImage::Filter_Edge() {
     ClearToBlack();
     return false;
 }// Filter_Edge
@@ -623,8 +653,7 @@ bool TargaImage::Filter_Edge()
 //  operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Filter_Enhance()
-{
+bool TargaImage::Filter_Enhance() {
     ClearToBlack();
     return false;
 }// Filter_Enhance
@@ -638,8 +667,7 @@ bool TargaImage::Filter_Enhance()
 // Return success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::NPR_Paint()
-{
+bool TargaImage::NPR_Paint() {
     ClearToBlack();
     return false;
 }
@@ -651,8 +679,7 @@ bool TargaImage::NPR_Paint()
 //      Halve the dimensions of this image.  Return success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Half_Size()
-{
+bool TargaImage::Half_Size() {
     ClearToBlack();
     return false;
 }// Half_Size
@@ -663,8 +690,7 @@ bool TargaImage::Half_Size()
 //      Double the dimensions of this image.  Return success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Double_Size()
-{
+bool TargaImage::Double_Size() {
     ClearToBlack();
     return false;
 }// Double_Size
@@ -676,8 +702,7 @@ bool TargaImage::Double_Size()
 //  assumed to be greater than one.  Return success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Resize(float scale)
-{
+bool TargaImage::Resize(float scale) {
     ClearToBlack();
     return false;
 }// Resize
@@ -689,24 +714,10 @@ bool TargaImage::Resize(float scale)
 //  image.  Return success of operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Rotate(float angleDegrees)
-{
+bool TargaImage::Rotate(float angleDegrees) {
     ClearToBlack();
     return false;
-}
-bool TargaImage::Compare(TargaImage* pImage) {
-    if (width != pImage->width) {
-        return false;
-    }
-    if (height != pImage->height) {
-        return false;
-    }
-    for (int i = 0; i < width * height * 4; i++) {
-        if (data[i] != pImage->data[i]) return false;
-    }
-    return true;
-}
-// Rotate
+}// Rotate
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -826,6 +837,24 @@ void TargaImage::Paint_Stroke(const Stroke& s) {
          }
       }
    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//
+//
+///////////////////////////////////////////////////////////////////////////////
+bool TargaImage::Compare(TargaImage* pImage) {
+    if (width != pImage->width) {
+        return false;
+    }
+    if (height != pImage->height) {
+        return false;
+    }
+    for (int i = 0; i < width * height * 4; i++) {
+            if (data[i] != pImage->data[i]) return false;
+        }
+    return true;
 }
 
 

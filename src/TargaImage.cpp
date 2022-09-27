@@ -346,10 +346,66 @@ bool TargaImage::Dither_Random(){
 //  operation.
 //
 ///////////////////////////////////////////////////////////////////////////////
-bool TargaImage::Dither_FS()
-{
+bool TargaImage::Dither_FS() {
+    uint32_t* new_data = new uint32_t [width * height * 4];
+    for (int i = 0; i < width * height * 4; i += 4) {
+        data[i] = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+        data[i + 2] = data[i + 1] = data[i];
+        new_data[i] = new_data[i + 1] = new_data[i + 2] = data[i];
+        new_data[i + 3] = data[3];
+    }
+
+    for (int i = 0; i < height; i++) {
+        if (i % 2 == 0) {
+            for (int j = 0; j < width; j++) {
+
+                size_t index = ((i * width) * 4) + j * 4;
+                data[index] = (new_data[index] < 128) ? 0 : 255;
+                data[index + 1] = data[index + 2] = data[index];
+
+                uint32_t diff = new_data[index] - data[index];
+
+                if (i + 1 < height && j > 0) {
+                    new_data[(((i + 1) * width) << 2) + (j - 1) * 4] += diff * ((float)3 / 16);
+                }
+                if (i + 1 < height) {
+                    new_data[(((i + 1) * width) << 2) + j * 4] += diff * ((float)5 / 16);
+                }
+                if (i + 1 < height && j + 1 < width) {
+                    new_data[(((i + 1) * width) << 2) + (j + 1) * 4] += diff * ((float)1 / 16);
+                }
+                if (j + 1 < width) {
+                    new_data[((i * width) << 2) + (j - 1) * 4] += diff * ((float)7 / 16);
+                }
+            }
+        }else {
+            for (int j = width - 1; j >= 0; j--) {
+
+                size_t index = ((i * width) * 4) + j * 4;
+                data[index] = (new_data[index] < 128) ? 0 : 255;
+                data[index + 1] = data[index + 2] = data[index];
+
+                uint32_t diff = new_data[index] - data[index];
+
+                if (i + 1 < height && j + 1 < width) {
+                    new_data[(((i + 1) * width) << 2) + (j + 1) * 4] += diff * ((float) 3 / 16);
+                }
+                if (i + 1 < height) {
+                    new_data[(((i + 1) * width) << 2) + j * 4] += diff * ((float) 5 / 16);
+                }
+                if (i + 1 < height && j > 0) {
+                    new_data[(((i + 1) * width) << 2) + (j - 1) * 4] += diff * ((float) 1 / 16);
+                }
+                if (j > 0) {
+                    new_data[((i * width) << 2) + (j - 1) * 4] += diff * ((float) 7 / 16);
+                }
+            }
+        }
+    }
+
+    delete[] new_data;
     ClearToBlack();
-    return false;
+    return true;
 }// Dither_FS
 
 

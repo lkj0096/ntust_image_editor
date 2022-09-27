@@ -901,8 +901,57 @@ bool TargaImage::Resize(float scale) {
 //
 ///////////////////////////////////////////////////////////////////////////////
 bool TargaImage::Rotate(float angleDegrees) {
+    uint32_t* new_data = new uint32_t [height*width*4];
+
+    double filter[4][4] = {
+        {1, 3, 3, 1},
+        {3, 9, 9, 3},
+        {3, 9, 9, 3},
+        {1, 3, 3, 1}
+    };
+
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            for(int k = 0; k < 4; k++){
+                double sum = 0, cnt = 0;
+                for(int m = 0; m < 4; m++){
+                    for(int n = 0; n < 4; n++){
+                        if((i + m - 2) < 0 || (j + n - 2) < 0 || (i + m - 2) >= height || (j + n - 2) >= width){
+                            continue;
+                        }
+                        size_t index = (((i + m - 2) * width) << 2) + ((j + n - 2) << 2);
+                        sum += data[index + k] * filter[m][n];
+                        cnt += filter[m][n];
+                    }
+                }
+            new_data[((i * width) << 2) + (j << 2) + k] = sum / cnt;
+            }
+        }
+    }
+
     ClearToBlack();
-    return false;
+    angleDegrees = -angleDegrees;
+    for(int i = 0; i < height; i++){
+        for(int j = 0; j < width; j++){
+            for(int k = 0; k < 4; k++){
+                int FixI = i - height / 2, FixJ = j - width / 2;
+
+                int rotated_i = cos(angleDegrees * c_pi / 180.f) * FixI
+                    + sin(angleDegrees * c_pi / 180.f) * FixJ + height / 2;
+                int rotated_j = cos(angleDegrees * c_pi / 180.f) * FixJ
+                    - sin(angleDegrees * c_pi / 180.f) * FixI + width / 2;
+
+                if(rotated_i < 0 || rotated_j < 0 || rotated_i >= height || rotated_j >= width){
+                    continue;
+                }
+                data[((i * width) << 2) + (j << 2) + k]
+                    = new_data[((rotated_i * width) << 2) + (rotated_j << 2) + k];
+            }
+        }
+    }
+    delete[] new_data;
+
+    return true;
 }// Rotate
 
 
